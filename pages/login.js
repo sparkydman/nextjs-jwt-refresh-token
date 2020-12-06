@@ -7,17 +7,11 @@ import jsHttpCookie from "cookie";
 import { connect } from "react-redux";
 import { login } from "../actions/user";
 
-const Login = ({ login, user: { user } }) => {
+const Login = ({ login }) => {
   const [formdata, setformdata] = useState({
     email: "",
     password: "",
   });
-
-  useEffect(() => {
-    if (user !== null) {
-      Router.replace("/");
-    }
-  }, [user]);
 
   const handleChange = (e) => {
     setformdata({ ...formdata, [e.target.name]: e.target.value });
@@ -26,6 +20,9 @@ const Login = ({ login, user: { user } }) => {
   const handlesubmit = (e) => {
     e.preventDefault();
     login(formdata);
+    setTimeout(() => {
+      Router.replace("/");
+    }, 2000);
   };
 
   return (
@@ -43,6 +40,7 @@ const Login = ({ login, user: { user } }) => {
           name="email"
           placeholder="Enter email"
           required
+          value={formdata.email}
           onChange={handleChange}
         />
         <input
@@ -50,6 +48,7 @@ const Login = ({ login, user: { user } }) => {
           name="password"
           placeholder="Enter password"
           required
+          value={formdata.password}
           onChange={handleChange}
         />
         <button type="submit">Submit</button>
@@ -118,6 +117,7 @@ const Login = ({ login, user: { user } }) => {
 
 Login.getInitialProps = async ({ req, res }) => {
   const initProps = {};
+  let isAuth = false;
   if (req && req.headers) {
     const cookies = req.headers.cookie;
     if (typeof cookies === "string") {
@@ -126,19 +126,16 @@ Login.getInitialProps = async ({ req, res }) => {
     }
   }
   if (initProps.refreshToken) {
+    isAuth = true;
     res.redirect(302, "/");
     res.finished = true;
     return {};
   }
-  return initProps;
+  return { isAuth };
 };
 
 Login.propTypes = {
-  user: PropTypes.object.isRequired,
+  login: PropTypes.func.isRequired,
 };
 
-const mapStateToProps = (state) => ({
-  user: state.user,
-});
-
-export default connect(mapStateToProps, { login })(Login);
+export default connect(null, { login })(Login);

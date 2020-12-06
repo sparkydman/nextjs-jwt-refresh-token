@@ -6,9 +6,11 @@ import Router from "next/router";
 import Link from "next/link";
 import { connect } from "react-redux";
 import { getUser, logout } from "../actions/user";
+import { appInitialProps } from "../auth";
 
 const Home = ({ getUser, logout, user: { user, loading } }) => {
   useEffect(() => {
+    console.log("loading");
     getUser();
   }, []);
 
@@ -73,22 +75,7 @@ const Home = ({ getUser, logout, user: { user, loading } }) => {
   );
 };
 
-Home.getInitialProps = async ({ req, res }) => {
-  const initProps = {};
-  if (req && req.headers) {
-    const cookies = req.headers.cookie;
-    if (typeof cookies === "string") {
-      const cookiesJSON = jsHttpCookie.parse(cookies);
-      initProps.refreshToken = cookiesJSON.refreshToken;
-    }
-    if (!initProps.refreshToken) {
-      res.redirect(302, "/login");
-      res.finished = true;
-      return {};
-    }
-  }
-  return initProps;
-};
+Home.getInitialProps = appInitialProps(true);
 
 Home.propTypes = {
   getUser: PropTypes.func.isRequired,

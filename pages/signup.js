@@ -5,19 +5,14 @@ import Link from "next/link";
 import Router from "next/router";
 import { connect } from "react-redux";
 import { register } from "../actions/user";
+import jsHttpCookie from "cookie";
 
-const Signup = ({ register, loading }) => {
+const Signup = ({ register }) => {
   const [formdata, setformdata] = useState({
     username: "",
     email: "",
     password: "",
   });
-
-  useEffect(() => {
-    if (!loading) {
-      Router.push("/login");
-    }
-  }, [loading]);
 
   const onChange = (e) => {
     setformdata({ ...formdata, [e.target.name]: e.target.value });
@@ -26,6 +21,9 @@ const Signup = ({ register, loading }) => {
   const onSubmit = (e) => {
     e.preventDefault();
     register(formdata);
+    setTimeout(() => {
+      Router.push("/login");
+    }, 2000);
   };
 
   return (
@@ -123,13 +121,27 @@ const Signup = ({ register, loading }) => {
   );
 };
 
-Signup.propTypes = {
-  register: PropTypes.func.isRequired,
-  loading: PropTypes.bool,
+Signup.getInitialProps = async ({ req, res }) => {
+  const initProps = {};
+  let isAuth = false;
+  if (req && req.headers) {
+    const cookies = req.headers.cookie;
+    if (typeof cookies === "string") {
+      const cookiesJSON = jsHttpCookie.parse(cookies);
+      initProps.refreshToken = cookiesJSON.refreshToken;
+    }
+  }
+  if (initProps.refreshToken) {
+    isAuth = true;
+    res.redirect(302, "/");
+    res.finished = true;
+    return {};
+  }
+  return { isAuth };
 };
 
-const mapStateToProps = (state) => ({
-  loading: state.user.loading,
-});
+Signup.propTypes = {
+  register: PropTypes.func.isRequired,
+};
 
-export default connect(mapStateToProps, { register })(Signup);
+export default connect(null, { register })(Signup);

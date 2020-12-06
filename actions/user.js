@@ -80,10 +80,9 @@ export const getToken = () => async (dispatch) => {
 };
 export const logout = () => async (dispatch) => {
   try {
-    const { data } = await http.get("/api/user/logout");
+    await http.get("/api/user/logout");
     dispatch({
       type: LOGOUT,
-      payload: data,
     });
   } catch (err) {
     console.log(err);

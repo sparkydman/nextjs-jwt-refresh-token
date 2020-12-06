@@ -39,40 +39,44 @@ route.post("/", async (req, res) => {
 
 // Login user
 route.post("/login", async (req, res) => {
-  // get request body {email, password}
-  const { email, password } = req.body;
+  try {
+    // get request body {email, password}
+    const { email, password } = req.body;
 
-  let user = await User.findOne({ email });
+    let user = await User.findOne({ email });
 
-  // check if user exist in the DB
-  if (!user) {
-    return res.status(404).json({ msg: "Invalid login email or password 1" });
+    // check if user exist in the DB
+    if (!user) {
+      return res.status(404).json({ msg: "Invalid login email or password 1" });
+    }
+
+    // compare password
+    const isUser = await bcrypt.compare(password, user.password);
+    if (!isUser) {
+      return res.status(401).json({ msg: "Invalid login email or password 2" });
+    }
+    // sign jwt token
+    const payload = {
+      user: { id: user._id },
+    };
+    const accessToken = getAccessToken(payload);
+    const refreshToken = getRefreshToken(payload);
+
+    user.refreshToken = refreshToken;
+
+    await user.save();
+    // set cookie header
+    res
+      .cookie("refreshToken", refreshToken, {
+        maxAge: 60 * 60 * 24 * 7,
+        httpOnly: true,
+        sameSite: true,
+        path: "/",
+      })
+      .json({ accessToken, user: user._id });
+  } catch (err) {
+    console.log(err);
   }
-
-  // compare password
-  const isUser = await bcrypt.compare(password, user.password);
-  if (!isUser) {
-    return res.status(401).json({ msg: "Invalid login email or password 2" });
-  }
-  // sign jwt token
-  const payload = {
-    user: { id: user._id },
-  };
-  const accessToken = getAccessToken(payload);
-  const refreshToken = getRefreshToken(payload);
-
-  user.refreshToken = refreshToken;
-
-  await user.save();
-  // set cookie header
-  res
-    .cookie("refreshToken", refreshToken, {
-      maxAge: 60 * 60 * 24 * 7,
-      httpOnly: true,
-      sameSite: true,
-      path: "/",
-    })
-    .json({ accessToken, user: user._id });
 });
 
 // protected route
@@ -163,14 +167,17 @@ route.get("/logout", requireAuth, async (req, res) => {
 
     req.user = decode.user;
 
-    const user = await User.findOneAndUpdate(
+    await User.findOneAndUpdate(
       { _id: req.user.id },
       { $set: { refreshToken: " " } }
     );
     // console.log(user);
-    res.clearCookie("refreshToken").send("Logged out");
+    res.clearCookie("refreshToken").redirect("/login");
   } catch (err) {
-    res.status(401).json({ msg: "Access denied, invalid token" });
+    res
+      .status(401)
+      .json({ msg: "Access denied, invalid token" })
+      .redirect("/login");
   }
 });
 

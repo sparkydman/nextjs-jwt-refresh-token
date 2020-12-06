@@ -26,8 +26,6 @@ http.interceptors.response.use(
     } = error;
     const originalRequest = config;
 
-    // console.log(status);
-
     if (status === 401) {
       if (!isAlreadyFetchingAccessToken) {
         isAlreadyFetchingAccessToken = true;
