@@ -169,7 +169,7 @@ route.get('/logout', requireAuth, async (req, res) => {
 
     await User.findOneAndUpdate(
       { _id: req.user.id },
-      { $set: { refreshToken: ' ' } }
+      { $set: { refreshToken: undefined } }
     );
     // console.log(user);
     res.clearCookie('refreshToken').redirect('/login');
