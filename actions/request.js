@@ -1,9 +1,12 @@
-import axios from "axios";
+import axios from 'axios';
+import { store } from '../store';
+import { getToken } from './user';
+
 let isAlreadyFetchingAccessToken = false;
 let subscribers = [];
 
 const http = axios.create({
-  baseURL: "http://localhost:3000",
+  baseURL: 'http://localhost:3000',
   withCredentials: true,
 });
 
@@ -19,7 +22,7 @@ http.interceptors.response.use(
   function (response) {
     return response;
   },
-  function (error) {
+  async function (error) {
     const {
       config,
       response: { status },
@@ -29,8 +32,11 @@ http.interceptors.response.use(
     if (status === 401) {
       if (!isAlreadyFetchingAccessToken) {
         isAlreadyFetchingAccessToken = true;
-        http.get("/api/user/refresh").then((res) => {
+        await store().dispatch(getToken());
+        // const token = store().getState().token;
+        http.get('/api/user/refresh').then((res) => {
           const { accessToken } = res.data;
+          // console.log(accessToken);
           isAlreadyFetchingAccessToken = false;
           onAccessTokenFetched(accessToken);
         });
@@ -38,7 +44,8 @@ http.interceptors.response.use(
 
       const retryOriginalRequest = new Promise((resolve) => {
         addSubscriber((accessToken) => {
-          originalRequest.headers.Authorization = "Bearer " + accessToken;
+          // http.defaults.headers.Authorization = `Bearer ${accessToken}`;
+          originalRequest.headers.Authorization = 'Bearer ' + accessToken;
           resolve(axios(originalRequest));
         });
       });

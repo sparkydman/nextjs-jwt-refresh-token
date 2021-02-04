@@ -1,64 +1,88 @@
 import {
-  REGISTER_SUCCESS,
-  LOGIN_SUCCESS,
-  GET_USER,
-  GET_TOKEN,
-  LOGOUT,
-  USER_ERR,
-} from "./types";
+  REGISTER_PENDING,
+  REGISTER_FULFILLED,
+  REGISTER_REJECTED,
+  LOGIN_PENDING,
+  LOGIN_FULFILLED,
+  LOGIN_REJECTED,
+  GET_PENDING,
+  GET_FULFILLED,
+  GET_REJECTED,
+  GET_TOKEN_PENDING,
+  GET_TOKEN_FULFILLED,
+  GET_TOKEN_REJECTED,
+  LOGOUT_PENDING,
+  LOGOUT_FULFILLED,
+  LOGOUT_REJECTED,
+} from './types';
 
-const initialState = {
-  user: null,
-  isAuthenticated: false,
-  loading: true,
-  accessToken: null,
-};
-
-const userReducer = (state = initialState, action) => {
+export const registerReducer = (state = {}, action) => {
   const { type, payload } = action;
   switch (type) {
-    case REGISTER_SUCCESS:
-      return {
-        ...state,
-        loading: false,
-      };
-    case LOGIN_SUCCESS:
-      return {
-        ...state,
-        user: payload.user,
-        isAuthenticated: true,
-        accessToken: payload.accessToken,
-        loading: false,
-      };
-    case GET_USER:
-      return {
-        ...state,
-        user: payload,
-        isAuthenticated: true,
-        loading: false,
-      };
-    case GET_TOKEN:
-      return {
-        ...state,
-        accessToken: payload,
-        loading: false,
-      };
-    case LOGOUT:
-      return {
-        ...state,
-        user: null,
-        isAuthenticated: false,
-        loading: false,
-        accessToken: null,
-      };
-    case USER_ERR:
-      return {
-        ...state,
-        loading: false,
-      };
+    case REGISTER_PENDING:
+      return { loading: true };
+    case REGISTER_FULFILLED:
+      return { loading: false, success: true, msg: payload };
+    case REGISTER_REJECTED:
+      return { loading: false, success: false, msg: payload };
     default:
       return state;
   }
 };
 
-export default userReducer;
+export const loginReducer = (state = {}, action) => {
+  const { type, payload } = action;
+  switch (type) {
+    case LOGIN_PENDING:
+      return { loading: true };
+    case LOGIN_FULFILLED:
+      return { loading: false, token: payload };
+    case LOGIN_REJECTED:
+      return { loading: false, msg: payload };
+    default:
+      return state;
+  }
+};
+
+export const getUserReducer = (state = { user: {} }, action) => {
+  const { type, payload } = action;
+  switch (type) {
+    case GET_PENDING:
+      return { loading: true };
+    case GET_FULFILLED:
+      return { loading: false, user: payload };
+    case GET_REJECTED:
+      return { loading: false, msg: payload };
+    default:
+      return state;
+  }
+};
+
+export const getTokenReducer = (state = { token: null }, action) => {
+  const { type, payload } = action;
+  switch (type) {
+    case GET_TOKEN_PENDING:
+      return { loading: true };
+    case GET_TOKEN_FULFILLED:
+      console.log(payload);
+      return { loading: false, token: payload };
+    case GET_TOKEN_REJECTED:
+      return { loading: false, msg: payload };
+    default:
+      return state;
+  }
+};
+
+export const logoutReducer = (state = {}, action) => {
+  const { type, payload } = action;
+  switch (type) {
+    case LOGOUT_PENDING:
+      return { loading: true };
+    case LOGOUT_FULFILLED:
+      return { loading: false, success: true };
+    case LOGOUT_REJECTED:
+      return { loading: false, msg: payload };
+    default:
+      return state;
+  }
+};

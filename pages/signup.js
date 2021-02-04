@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from "react";
-import PropTypes from "prop-types";
-import Head from "next/head";
-import Link from "next/link";
-import Router from "next/router";
-import { connect } from "react-redux";
-import { register } from "../actions/user";
-import jsHttpCookie from "cookie";
+import React, { useState, useEffect } from 'react';
+import Head from 'next/head';
+import Link from 'next/link';
+import Router from 'next/router';
+import { useDispatch, useSelector } from 'react-redux';
+import { register } from '../actions/user';
+import jsHttpCookie from 'cookie';
 
-const Signup = ({ register }) => {
+const Signup = () => {
   const [formdata, setformdata] = useState({
-    username: "",
-    email: "",
-    password: "",
+    username: '',
+    email: '',
+    password: '',
   });
+  const dispatch = useDispatch();
 
   const onChange = (e) => {
     setformdata({ ...formdata, [e.target.name]: e.target.value });
@@ -20,49 +20,54 @@ const Signup = ({ register }) => {
 
   const onSubmit = (e) => {
     e.preventDefault();
-    register(formdata);
-    setTimeout(() => {
-      Router.push("/login");
-    }, 2000);
+    dispatch(register(formdata));
   };
 
+  const reg = useSelector((state) => state.register);
+
+  useEffect(() => {
+    if (!reg.loading && reg.success) {
+      Router.replace('/login');
+    }
+  }, [reg]);
+
   return (
-    <div className="container">
+    <div className='container'>
       <Head>
         <title>Next refresh token</title>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel='icon' href='/favicon.ico' />
       </Head>
 
-      <h1 className="title">Registeration Form</h1>
+      <h1 className='title'>Registeration Form</h1>
 
       <form onSubmit={onSubmit}>
         <input
-          type="text"
-          name="username"
-          placeholder="Username"
+          type='text'
+          name='username'
+          placeholder='Username'
           required
           onChange={onChange}
         />
         <input
-          type="email"
-          name="email"
-          placeholder="Enter email"
+          type='email'
+          name='email'
+          placeholder='Enter email'
           required
           onChange={onChange}
         />
         <input
-          type="password"
-          name="password"
-          placeholder="Enter password"
+          type='password'
+          name='password'
+          placeholder='Enter password'
           required
           onChange={onChange}
         />
-        <button type="submit">Submit</button>
+        <button type='submit'>Submit</button>
         <p>
-          Already have an account?{" "}
-          <Link href="/login">
+          Already have an account?{' '}
+          <Link href='/login'>
             <a>Login</a>
-          </Link>{" "}
+          </Link>{' '}
         </p>
       </form>
 
@@ -121,27 +126,23 @@ const Signup = ({ register }) => {
   );
 };
 
-Signup.getInitialProps = async ({ req, res }) => {
-  const initProps = {};
-  let isAuth = false;
-  if (req && req.headers) {
-    const cookies = req.headers.cookie;
-    if (typeof cookies === "string") {
-      const cookiesJSON = jsHttpCookie.parse(cookies);
-      initProps.refreshToken = cookiesJSON.refreshToken;
-    }
-  }
-  if (initProps.refreshToken) {
-    isAuth = true;
-    res.redirect(302, "/");
-    res.finished = true;
-    return {};
-  }
-  return { isAuth };
-};
+// Signup.getInitialProps = async ({ req, res }) => {
+//   const initProps = {};
+//   let isAuth = false;
+//   if (req && req.headers) {
+//     const cookies = req.headers.cookie;
+//     if (typeof cookies === 'string') {
+//       const cookiesJSON = jsHttpCookie.parse(cookies);
+//       initProps.refreshToken = cookiesJSON.refreshToken;
+//     }
+//   }
+//   if (initProps.refreshToken) {
+//     isAuth = true;
+//     res.redirect(302, '/');
+//     res.finished = true;
+//     return {};
+//   }
+//   return { isAuth };
+// };
 
-Signup.propTypes = {
-  register: PropTypes.func.isRequired,
-};
-
-export default connect(null, { register })(Signup);
+export default Signup;

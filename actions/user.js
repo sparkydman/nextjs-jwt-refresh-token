@@ -1,93 +1,102 @@
-import http from "./request";
-import cookie from "js-cookie";
+import http from './request';
+import axios from 'axios';
 
-import {
-  GET_TOKEN,
-  GET_USER,
-  LOGIN_FAIL,
-  LOGIN_SUCCESS,
-  LOGOUT,
-  REGISTER_FAIL,
-  REGISTER_SUCCESS,
-  USER_ERR,
-} from "../reducer/types";
-import axios from "axios";
+import { GET_TOKEN, GET, LOGIN, LOGOUT, REGISTER } from '../reducer/types';
 
-export const register = ({ username, email, password }) => async (dispatch) => {
-  try {
-    await http.post("/api/user", { username, email, password });
+export const register = ({ username, email, password }) => (dispatch) =>
+  dispatch({
+    type: REGISTER,
+    payload: new Promise((resolve, reject) => {
+      http
+        .post('/api/user', { username, email, password })
+        .then((res) => resolve(res.data.msg))
+        .catch((err) => reject(err));
+    }).catch((err) =>
+      Promise.reject(
+        err.response && err.response.data.msg
+          ? err.response.data.msg
+          : err.message
+      )
+    ),
+  });
 
-    dispatch({
-      type: REGISTER_SUCCESS,
-    });
-  } catch (err) {
-    console.log(err);
-    dispatch({
-      type: USER_ERR,
-    });
-  }
+export const login = (value) => (dispatch) =>
+  dispatch({
+    type: LOGIN,
+    payload: new Promise((resolve, reject) => {
+      http
+        .post('/api/user/login', value)
+        .then((res) => {
+          http.defaults.headers.Authorization = `Bearer ${res.data.accessToken}`;
+          resolve(res.data.accessToken);
+        })
+        .catch((err) => reject(err));
+    }).catch((err) =>
+      Promise.reject(
+        err.response && err.response.data.msg
+          ? err.response.data.msg
+          : err.message
+      )
+    ),
+  });
+
+export const getUser = () => (dispatch, getState) => {
+  const { token } = getState();
+  console.log(token);
+  return dispatch({
+    type: GET,
+    payload: new Promise((resolve, reject) => {
+      http
+        .get('/api/user/me', {
+          headers: { Authorization: `Bearer ${token.token}` },
+        })
+        .then((res) => resolve(res.data))
+        .catch((err) => reject(err));
+    }).catch((err) =>
+      Promise.reject(
+        err.response && err.response.data.msg
+          ? err.response.data.msg
+          : err.message
+      )
+    ),
+  });
 };
 
-export const login = ({ email, password }) => async (dispatch) => {
-  try {
-    const { data } = await http.post("/api/user/login", { email, password });
-    http.defaults.headers.Authorization = `Bearer ${data.accessToken}`;
-    // const tenMin = new Date(new Date().getTime() + 10 * 60 * 1000);
-    // cookie.set("accessToken", data.accessToken, {
-    //   expires: tenMin,
-    //   sameSite: "strict",
-    //   secure: true,
-    // });
-    dispatch({
-      type: LOGIN_SUCCESS,
-      payload: data,
-    });
-  } catch (err) {
-    console.log(err.response);
-    dispatch({
-      type: USER_ERR,
-    });
-  }
-};
-export const getUser = () => async (dispatch) => {
-  try {
-    const { data } = await http.get("/api/user/me");
-    dispatch({
-      type: GET_USER,
-      payload: data,
-    });
-  } catch (err) {
-    console.log(err);
-    dispatch({
-      type: USER_ERR,
-    });
-  }
-};
-export const getToken = () => async (dispatch) => {
-  try {
-    const { data } = await http.get("/api/user/refresh");
-    http.defaults.headers.Authorization = `Bearer ${data.accessToken}`;
-    dispatch({
-      type: GET_TOKEN,
-      payload: data,
-    });
-  } catch (err) {
-    console.log(err);
-    dispatch({
-      type: USER_ERR,
-    });
-  }
-};
-export const logout = () => async (dispatch) => {
-  try {
-    await http.get("/api/user/logout");
-    dispatch({
-      type: LOGOUT,
-    });
-  } catch (err) {
-    console.log(err);
-    dispatch({
-      type: USER_ERR,
-    });
-  }
-};
+export const getToken = () => (dispatch) =>
+  dispatch({
+    type: GET_TOKEN,
+    payload: new Promise((resolve, reject) => {
+      axios
+        .get('/api/user/refresh')
+        .then((res) => {
+          axios.defaults.headers.Authorization = `Bearer ${res.data.accessToken}`;
+          resolve(res.data.accessToken);
+        })
+        .catch((err) => reject(err));
+    }).catch((err) =>
+      Promise.reject(
+        err.response && err.response.data.msg
+          ? err.response.data.msg
+          : err.message
+      )
+    ),
+  });
+
+export const logout = () => (dispatch) =>
+  dispatch({
+    type: LOGOUT,
+    payload: new Promise((resolve, reject) => {
+      http
+        .get('/api/user/logout')
+        .then(() => {
+          resolve('ok');
+        })
+        .catch((err) => reject(err));
+    }).catch((err) =>
+      Promise.reject(
+        err.response && err.response.data.msg
+          ? err.response.data.msg
+          : err.message
+      )
+    ),
+  });

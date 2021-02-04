@@ -1,6 +1,30 @@
-export const REGISTER_SUCCESS = "REGISTER_SUCCESS";
-export const LOGIN_SUCCESS = "LOGIN_SUCCESS";
-export const GET_USER = "GET_USER";
-export const GET_TOKEN = "GET_TOKEN";
-export const LOGOUT = "LOGOUT";
-export const USER_ERR = "USER_ERR";
+export const REGISTER = 'REGISTER';
+export const REGISTER_PENDING = 'REGISTER_PENDING';
+export const REGISTER_FULFILLED = 'REGISTER_FULFILLED';
+export const REGISTER_REJECTED = 'REGISTER_REJECTED';
+
+export const REGISTER_SUCCESS = 'REGISTER_SUCCESS';
+
+export const LOGIN = 'LOGIN';
+export const LOGIN_PENDING = 'LOGIN_PENDING';
+export const LOGIN_FULFILLED = 'LOGIN_FULFILLED';
+export const LOGIN_REJECTED = 'LOGIN_REJECTED';
+export const LOGIN_SUCCESS = 'LOGIN_SUCCESS';
+
+export const GET = 'GET';
+export const GET_PENDING = 'GET_PENDING';
+export const GET_FULFILLED = 'GET_FULFILLED';
+export const GET_REJECTED = 'GET_REJECTED';
+export const GET_USER = 'GET_USER';
+
+export const GET_TOKEN = 'GET_TOKEN';
+export const GET_TOKEN_PENDING = 'GET_TOKEN_PENDING';
+export const GET_TOKEN_FULFILLED = 'GET_TOKEN_FULFILLED';
+export const GET_TOKEN_REJECTED = 'GET_TOKEN_REJECTED';
+
+export const LOGOUT = 'LOGOUT';
+export const LOGOUT_PENDING = 'LOGOUT_PENDING';
+export const LOGOUT_FULFILLED = 'LOGOUT_FULFILLED';
+export const LOGOUT_REJECTED = 'LOGOUT_REJECTED';
+
+export const USER_ERR = 'USER_ERR';

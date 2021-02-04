@@ -1,49 +1,58 @@
-import React, { useEffect } from "react";
-import Head from "next/head";
-import jsHttpCookie from "cookie";
-import PropTypes from "prop-types";
-import Router from "next/router";
-import Link from "next/link";
-import { connect } from "react-redux";
-import { getUser, logout } from "../actions/user";
-import { appInitialProps } from "../auth";
+import React, { useEffect } from 'react';
+import Head from 'next/head';
+import jsHttpCookie from 'cookie';
+import PropTypes from 'prop-types';
+import Router from 'next/router';
+import Link from 'next/link';
+import { useDispatch, useSelector } from 'react-redux';
+import { getUser, logout } from '../actions/user';
+import { appInitialProps } from '../auth';
 
-const Home = ({ getUser, logout, user: { user, loading } }) => {
-  useEffect(() => {
-    console.log("loading");
-    getUser();
-  }, []);
+const Home = () => {
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    if (!loading && user === null) {
-      Router.replace("/login");
+    dispatch(getUser());
+  }, [dispatch]);
+
+  const user = useSelector((state) => state.user);
+
+  useEffect(() => {
+    if (user && !user.loading && user.msg) {
+      Router.replace('/login');
     }
-  }, [loading, user]);
+  }, [user]);
 
   return (
-    <div className="container">
+    <div className='container'>
       <Head>
         <title>Next refresh token</title>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel='icon' href='/favicon.ico' />
       </Head>
 
-      {!loading && user !== null ? (
-        <>
-          <h1 className="title">{`Welcome ${user.username}`}</h1>
-          <Link href="/other">
-            <a>go to other page</a>
-          </Link>
-          <button
-            onClick={() => {
-              logout();
-              Router.replace("/login");
-            }}
-          >
-            logout
-          </button>
-        </>
-      ) : (
+      {user.loading ? (
         <p>Loading...</p>
+      ) : user.msg ? (
+        <p>{user.msg}</p>
+      ) : (
+        user.user.username && (
+          <>
+            <h1 className='title'>{`Welcome ${
+              user.user.username && user.user.username
+            }`}</h1>
+            <Link href='/other'>
+              <a>go to other page</a>
+            </Link>
+            <button
+              onClick={() => {
+                dispatch(logout());
+                Router.replace('/login');
+              }}
+            >
+              logout
+            </button>
+          </>
+        )
       )}
 
       <style jsx>{`
@@ -77,14 +86,4 @@ const Home = ({ getUser, logout, user: { user, loading } }) => {
 
 Home.getInitialProps = appInitialProps(true);
 
-Home.propTypes = {
-  getUser: PropTypes.func.isRequired,
-  user: PropTypes.object.isRequired,
-  logout: PropTypes.func,
-};
-
-const mapStateToProps = (state) => ({
-  user: state.user,
-});
-
-export default connect(mapStateToProps, { getUser, logout })(Home);
+export default Home;

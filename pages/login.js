@@ -1,17 +1,19 @@
-import React, { useState, useEffect } from "react";
-import PropTypes from "prop-types";
-import Router from "next/router";
-import Head from "next/head";
-import Link from "next/link";
-import jsHttpCookie from "cookie";
-import { connect } from "react-redux";
-import { login } from "../actions/user";
+import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
+import Router from 'next/router';
+import Head from 'next/head';
+import Link from 'next/link';
+import jsHttpCookie from 'cookie';
+import { useDispatch, useSelector } from 'react-redux';
+import { login } from '../actions/user';
 
-const Login = ({ login }) => {
+const Login = () => {
   const [formdata, setformdata] = useState({
-    email: "",
-    password: "",
+    email: '',
+    password: '',
   });
+
+  const dispatch = useDispatch();
 
   const handleChange = (e) => {
     setformdata({ ...formdata, [e.target.name]: e.target.value });
@@ -19,44 +21,49 @@ const Login = ({ login }) => {
 
   const handlesubmit = (e) => {
     e.preventDefault();
-    login(formdata);
-    setTimeout(() => {
-      Router.replace("/");
-    }, 2000);
+    dispatch(login(formdata));
   };
 
+  const loginUser = useSelector((state) => state.login);
+
+  useEffect(() => {
+    if (!loginUser.loading && loginUser.token) {
+      Router.replace('/');
+    }
+  }, [loginUser]);
+
   return (
-    <div className="container">
+    <div className='container'>
       <Head>
         <title>Next refresh token</title>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel='icon' href='/favicon.ico' />
       </Head>
 
-      <h1 className="title">Login Form</h1>
+      <h1 className='title'>Login Form</h1>
 
       <form onSubmit={handlesubmit}>
         <input
-          type="email"
-          name="email"
-          placeholder="Enter email"
+          type='email'
+          name='email'
+          placeholder='Enter email'
           required
           value={formdata.email}
           onChange={handleChange}
         />
         <input
-          type="password"
-          name="password"
-          placeholder="Enter password"
+          type='password'
+          name='password'
+          placeholder='Enter password'
           required
           value={formdata.password}
           onChange={handleChange}
         />
-        <button type="submit">Submit</button>
+        <button type='submit'>Submit</button>
         <p>
-          You don't have account?{" "}
-          <Link href="/signup">
+          You don't have account?{' '}
+          <Link href='/signup'>
             <a>Register</a>
-          </Link>{" "}
+          </Link>{' '}
         </p>
       </form>
 
@@ -115,27 +122,23 @@ const Login = ({ login }) => {
   );
 };
 
-Login.getInitialProps = async ({ req, res }) => {
-  const initProps = {};
-  let isAuth = false;
-  if (req && req.headers) {
-    const cookies = req.headers.cookie;
-    if (typeof cookies === "string") {
-      const cookiesJSON = jsHttpCookie.parse(cookies);
-      initProps.refreshToken = cookiesJSON.refreshToken;
-    }
-  }
-  if (initProps.refreshToken) {
-    isAuth = true;
-    res.redirect(302, "/");
-    res.finished = true;
-    return {};
-  }
-  return { isAuth };
-};
+// Login.getInitialProps = async ({ req, res }) => {
+//   const initProps = {};
+//   let isAuth = false;
+//   if (req && req.headers) {
+//     const cookies = req.headers.cookie;
+//     if (typeof cookies === "string") {
+//       const cookiesJSON = jsHttpCookie.parse(cookies);
+//       initProps.refreshToken = cookiesJSON.refreshToken;
+//     }
+//   }
+//   if (initProps.refreshToken) {
+//     isAuth = true;
+//     res.redirect(302, "/");
+//     res.finished = true;
+//     return {};
+//   }
+//   return { isAuth };
+// };
 
-Login.propTypes = {
-  login: PropTypes.func.isRequired,
-};
-
-export default connect(null, { login })(Login);
+export default Login;

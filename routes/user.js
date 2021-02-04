@@ -1,19 +1,19 @@
-const express = require("express");
-const bcrypt = require("bcrypt");
+const express = require('express');
+const bcrypt = require('bcrypt');
 
-const jwt = require("jsonwebtoken");
+const jwt = require('jsonwebtoken');
 const {
   getAccessToken,
   getRefreshToken,
   requireAuth,
-} = require("../middleware/auth");
+} = require('../middleware/auth');
 
 const route = express.Router();
 
-const User = require("../models/User");
+const User = require('../models/User');
 
 // register user route
-route.post("/", async (req, res) => {
+route.post('/', async (req, res) => {
   try {
     // get request body {username, email, password}
     const { username, email, password } = req.body;
@@ -21,7 +21,7 @@ route.post("/", async (req, res) => {
     // check if the user already exist in the DB
     let user = await User.findOne({ email });
     if (user) {
-      res.status(403).json({ msg: "User already exist" });
+      res.status(403).json({ msg: 'User already exist' });
     }
 
     // save to DB
@@ -30,15 +30,15 @@ route.post("/", async (req, res) => {
 
     await user.save();
 
-    res.status(200).json({ msg: "Registered successfully!" });
+    res.status(200).json({ msg: 'Registered successfully!' });
   } catch (err) {
     console.log(err);
-    res.status(500).send("Server error");
+    res.status(500).send('Server error');
   }
 });
 
 // Login user
-route.post("/login", async (req, res) => {
+route.post('/login', async (req, res) => {
   try {
     // get request body {email, password}
     const { email, password } = req.body;
@@ -47,13 +47,13 @@ route.post("/login", async (req, res) => {
 
     // check if user exist in the DB
     if (!user) {
-      return res.status(404).json({ msg: "Invalid login email or password 1" });
+      return res.status(404).json({ msg: 'Incorrect credentials' });
     }
 
     // compare password
     const isUser = await bcrypt.compare(password, user.password);
     if (!isUser) {
-      return res.status(401).json({ msg: "Invalid login email or password 2" });
+      return res.status(400).json({ msg: 'Incorrect credentials' });
     }
     // sign jwt token
     const payload = {
@@ -67,26 +67,26 @@ route.post("/login", async (req, res) => {
     await user.save();
     // set cookie header
     res
-      .cookie("refreshToken", refreshToken, {
+      .cookie('refreshToken', refreshToken, {
         maxAge: 60 * 60 * 24 * 7,
         httpOnly: true,
         sameSite: true,
-        path: "/",
+        path: '/',
       })
-      .json({ accessToken, user: user._id });
+      .json({ accessToken });
   } catch (err) {
     console.log(err);
   }
 });
 
 // protected route
-route.get("/me", requireAuth, async (req, res) => {
+route.get('/me', requireAuth, async (req, res) => {
   // check  auth cookie
-  let accessToken = req.headers["authorization"];
+  let accessToken = req.headers['authorization'];
   if (!accessToken) {
-    return res.status(401).json({ msg: "Access denied, token required" });
+    return res.status(401).json({ msg: 'Access denied, token required' });
   }
-  accessToken = accessToken.split(" ")[1];
+  accessToken = accessToken.split(' ')[1];
 
   try {
     // verify token
@@ -95,27 +95,27 @@ route.get("/me", requireAuth, async (req, res) => {
     req.user = decode.user;
 
     const user = await User.findOne({ _id: req.user.id }).select([
-      "-refreshToken",
-      "-password",
+      '-refreshToken',
+      '-password',
     ]);
 
     res.json(user);
   } catch (err) {
-    res.status(401).json({ msg: "Access denied, invalid token" });
+    res.status(401).json({ msg: 'Access denied, invalid token' });
   }
 });
 
 // refresh token
-route.get("/refresh", async (req, res) => {
+route.get('/refresh', async (req, res) => {
   try {
     // check if refresh token is in the cookie headers
-    let refreshToken = req.headers["cookie"];
+    let refreshToken = req.headers['cookie'];
     if (!refreshToken) {
-      return res.status(401).json({ msg: "Access denied, token required 1" });
+      return res.status(401).json({ msg: 'Access denied, token required 1' });
     }
     // split the cookie string to get the actual cookie
 
-    refreshToken = refreshToken.split("=")[1];
+    refreshToken = refreshToken.split('=')[1];
     //   verify if the cookie is valid or not
 
     const decode = jwt.verify(refreshToken, process.env.JWT_REFRESHTOKEN);
@@ -125,7 +125,7 @@ route.get("/refresh", async (req, res) => {
     let user = await User.findOne({ _id: req.user.id });
     // check if the refresh token is equal to the one in the cookie heaer
     if (user.refreshToken !== refreshToken) {
-      return res.status(401).json({ msg: "Access denied, token not ours" });
+      return res.status(401).json({ msg: 'Access denied, token not ours' });
     }
     //  generate new refresh and access token
     const payload = {
@@ -140,25 +140,25 @@ route.get("/refresh", async (req, res) => {
 
     // set cookie header
     res
-      .cookie("refreshToken", refreshToken, {
+      .cookie('refreshToken', refreshToken, {
         maxAge: 60 * 60 * 24 * 7,
         httpOnly: true,
         sameSite: true,
-        path: "/",
+        path: '/',
       })
       .json({ accessToken });
   } catch (err) {
-    res.status(401).clearCookie("refreshToken").redirect("/login");
+    res.status(401).clearCookie('refreshToken').redirect('/login');
   }
 });
 
 // protected route
-route.get("/logout", requireAuth, async (req, res) => {
+route.get('/logout', requireAuth, async (req, res) => {
   // check  auth cookie
-  let accessToken = req.headers["authorization"];
-  accessToken = accessToken.split(" ")[1];
+  let accessToken = req.headers['authorization'];
+  accessToken = accessToken.split(' ')[1];
   if (!accessToken) {
-    return res.status(401).json({ msg: "Access denied, token required" });
+    return res.status(401).json({ msg: 'Access denied, token required' });
   }
 
   try {
@@ -169,15 +169,15 @@ route.get("/logout", requireAuth, async (req, res) => {
 
     await User.findOneAndUpdate(
       { _id: req.user.id },
-      { $set: { refreshToken: " " } }
+      { $set: { refreshToken: ' ' } }
     );
     // console.log(user);
-    res.clearCookie("refreshToken").redirect("/login");
+    res.clearCookie('refreshToken').redirect('/login');
   } catch (err) {
     res
       .status(401)
-      .json({ msg: "Access denied, invalid token" })
-      .redirect("/login");
+      .json({ msg: 'Access denied, invalid token' })
+      .redirect('/login');
   }
 });
 

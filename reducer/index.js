@@ -1,6 +1,16 @@
-import { combineReducers } from "redux";
-import user from "./user";
+import { combineReducers } from 'redux';
+import {
+  getTokenReducer,
+  getUserReducer,
+  loginReducer,
+  logoutReducer,
+  registerReducer,
+} from './user';
 
 export default combineReducers({
-  user,
+  register: registerReducer,
+  login: loginReducer,
+  token: getTokenReducer,
+  user: getUserReducer,
+  logout: logoutReducer,
 });
